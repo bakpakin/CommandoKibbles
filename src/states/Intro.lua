@@ -29,10 +29,10 @@ function Intro:load()
         require ("src.systems.HudSystem")(self, "hudBg"),
         require ("src.systems.HudSystem")(self, "hudFg"),
         TransitionScreen(),
-        ScreenSplash(0.5, 0.25, "Cammando Kibbles"),
+        ScreenSplash(0.5, 0.2, "Cammando Kibbles"),
         ScreenSplash(0, 0, "Created by bakpakin for Ludum Dare 32", 300, assets.fnt_reallysmallhud, "left", 20, 20),
-        ScreenSplash(0.5, 0.4, "Press Space to Start", 500, assets.fnt_smallhud),
-        ScreenSplash(0.5, 0.5, "Controls:\nMove - WASD\nRotate Cannon - Arrow Keys\nFire - Down\nToggle Fullscreen - \\\nToggle Music - M\nPause - P", 800, assets.fnt_reallysmallhud)
+        ScreenSplash(0.5, 0.36, "Press Space to Start", 500, assets.fnt_smallhud),
+        ScreenSplash(0.5, 0.45, "Controls:\nMove - WASD\nRotate Cannon - Arrow Keys\nFire - Down\nToggle Fullscreen - \\\nToggle Music - M\nPause - P\nEscape - Quit", 800, assets.fnt_reallysmallhud)
 	)
 	_G.world = self.world
     _G.camera = camera

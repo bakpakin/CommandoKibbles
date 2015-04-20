@@ -23,5 +23,7 @@ assets.snd_music = love.audio.newSource("assets/music.ogg")
 
 assets.fnt_hud = love.graphics.newFont("assets/font.ttf", 48)
 assets.fnt_smallhud = love.graphics.newFont("assets/font.ttf", 32)
+assets.fnt_reallysmallhud = love.graphics.newFont("assets/font.ttf", 24)
+
 
 return assets

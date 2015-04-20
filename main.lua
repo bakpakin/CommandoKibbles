@@ -24,7 +24,7 @@ function love.load()
 	love.mouse.setVisible(false)
 	assets = require "src.assets" -- load assets
 	gamestate.registerEvents()
-	gamestate.switch(Level("assets/lvl1"))
+	gamestate.switch(Intro())
 	assets.snd_music:play()
 	assets.snd_music:setLooping(true)
 	love.resize(love.graphics.getWidth(), love.graphics.getHeight())
@@ -42,6 +42,14 @@ function love.draw()
 		if world then
 			world:update(dt)
 		end
+	end
+end
+
+function love.update(dt)
+	local s = gamestate.current()
+	if s and s.restartOnSpace and love.keyboard.isDown(" ") then
+		local TransitionScreen = require "src.entities.TransitionScreen"
+		world:add(TransitionScreen(true, Intro()))
 	end
 end
 
@@ -69,9 +77,6 @@ beholder.observe("keypress", "p", function()
 		love.graphics.setCanvas()
 	end
 end)
-
--- restart
-beholder.observe("keypress", "r", love.load)
 
 -- toggle music
 beholder.observe("keypress", "m", function()

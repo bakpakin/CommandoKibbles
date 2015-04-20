@@ -28,8 +28,17 @@ function Player:onHit()
     self.controlable = nil
     assets.snd_meow:play()
     world:add(self)
-    world:add(TimerEvent(1.2, function() world:add(ScreenSplash(0.5, 0.4, "You Died. Press 'R' to Try Again.")) end))
+    local n = gamestate.current().score
+    local message = "You Died."
+    if n == 0 then message = "You Failed Pretty Hard." 
+    elseif n < 10 then message = "You Killed Some Pigs and They Killed you Back."
+    elseif n < 30 then message = "That's a lot of Bacon."
+    elseif n < 100 then message = "You a crazy Pig Killer."
+    else message = "Pigpocolypse." end
+
+    world:add(TimerEvent(1.2, function() world:add(ScreenSplash(0.5, 0.4, message .. " Press Space to Try Again.", 800)) end))
     gamestate.current().isSpawning = false
+    gamestate.current().restartOnSpace = true
 end
 
 function Player:onCollision(col)

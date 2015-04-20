@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE map SYSTEM "http://mapeditor.org/dtd/1.0/map.dtd">
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="80" height="80" tilewidth="16" tileheight="16" nextobjectid="11">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="80" height="80" tilewidth="16" tileheight="16" backgroundcolor="#8ccdff" nextobjectid="11">
  <tileset firstgid="1" name="tiles" tilewidth="16" tileheight="16">
   <image source="tiles.png" width="256" height="256"/>
  </tileset>

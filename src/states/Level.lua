@@ -3,11 +3,12 @@ local bump = require("lib.bump")
 local gamera = require("lib.gamera")
 local TimerEvent = require "src.entities.TimerEvent"
 local ScreenSplash = require "src.entities.ScreenSplash"
+local TransitionScreen = require "src.entities.TransitionScreen"
 
 local Level = class "Level"
 
-local waveTable = {4, 10, 20, 50, 80, 100, 120, 150, 180, 200, 250}
-local waveSpawnSpeeds = {1, 1, 1.5, 2, 2, 2.2, 3, 3, 4, 5, 7}
+local waveTable = {4}--, 10, 20, 50, 80, 100, 120, 150, 180, 200, 250}
+local waveSpawnSpeeds = {1}--, 1, 1.5, 2, 2, 2.2, 3, 3, 4, 5, 7}
 
 function Level:init(mappath)
 	self.mappath = mappath
@@ -35,6 +36,7 @@ function Level:load()
 
     self.wave = 0
     self:nextWave()
+    self.score = 0
 
     self.spawnerCount = 0
     self.spawners = {}
@@ -45,9 +47,11 @@ function Level:load()
 
     self.aiSystem = require ("src.systems.AISystem")()
 
+    local r, g, b = tileMap.backgroundcolor[1], tileMap.backgroundcolor[2], tileMap.backgroundcolor[3]
+
     camera:setScale(2)
     local world = tiny.world(
-        require ("src.systems.DrawBackgroundSystem")(),
+        require ("src.systems.DrawBackgroundSystem")(r, g, b),
         require ("src.systems.UpdateSystem")(),
         require ("src.systems.PlayerControlSystem")(),
         self.aiSystem,
@@ -59,9 +63,12 @@ function Level:load()
         require ("src.systems.SpriteSystem")(camera, "bg"),
         require ("src.systems.SpriteSystem")(camera, "fg"),
         require ("src.systems.LifetimeSystem")(),
-        require ("src.systems.HudSystem")(self),
+        require ("src.systems.HudSystem")(self, "hudBg"),
+        require ("src.systems.HudSystem")(self, "hudFg"),
         require ("src.systems.WaveSystem")(self),
-        require ("src.systems.SpawnSystem")(self)
+        require ("src.systems.SpawnSystem")(self),
+        require ("src.entities.MainHud")(self),
+        TransitionScreen()
     )
 
     local player = nil

@@ -1,6 +1,7 @@
 local assets = require "src.assets"
 local anim8 = require "lib.anim8"
 local Explosion = require "src.entities.Explosion"
+local gamestate = require "lib.gamestate"
 
 local Pig = class "Pig"
 
@@ -17,7 +18,7 @@ function Pig:init(x, y, target)
 
 	self.platforming = {
         acceleration = 1000,
-        speed = 80,
+        speed = 60,
         jump = 250,
         friction = 2000,
         direction = 'r'
@@ -51,6 +52,7 @@ function Pig:gotHit()
         assets.snd_oink:play()
         assets.snd_yay:play()
         world:add(self)
+        gamestate.current().score = gamestate.current().score + 1
     end
 end
 

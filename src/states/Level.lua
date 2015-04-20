@@ -7,8 +7,8 @@ local TransitionScreen = require "src.entities.TransitionScreen"
 
 local Level = class "Level"
 
-local waveTable = {4}--, 10, 20, 50, 80, 100, 120, 150, 180, 200, 250}
-local waveSpawnSpeeds = {1}--, 1, 1.5, 2, 2, 2.2, 3, 3, 4, 5, 7}
+local waveTable = {4, 10, 20, 50, 80, 100, 120, 150, 180, 200, 250}
+local waveSpawnSpeeds = {1, 1, 1.5, 2, 2, 2.2, 3, 3, 4, 5, 7}
 
 function Level:init(mappath)
 	self.mappath = mappath

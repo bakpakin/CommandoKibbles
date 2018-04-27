@@ -1,5 +1,5 @@
 local bump = {
-  _VERSION     = 'bump v3.1.2',
+  _VERSION     = 'bump v3.1.7',
   _URL         = 'https://github.com/kikito/bump.lua',
   _DESCRIPTION = 'A collision detection library for Lua',
   _LICENSE     = [[
@@ -31,6 +31,7 @@ local bump = {
 ------------------------------------------
 -- Auxiliary functions
 ------------------------------------------
+local DELTA = 1e-10 -- floating-point margin of error
 
 local abs, floor, ceil, min, max = math.abs, math.floor, math.ceil, math.min, math.max
 
@@ -120,10 +121,9 @@ local function rect_getDiff(x1,y1,w1,h1, x2,y2,w2,h2)
          h1 + h2
 end
 
-local delta = 0.00001 -- floating-point-safe comparisons here, otherwise bugs
 local function rect_containsPoint(x,y,w,h, px,py)
-  return px - x > delta      and py - y > delta and
-         x + w - px > delta  and y + h - py > delta
+  return px - x > DELTA      and py - y > DELTA and
+         x + w - px > DELTA  and y + h - py > DELTA
 end
 
 local function rect_isIntersecting(x1,y1,w1,h1, x2,y2,w2,h2)
@@ -155,7 +155,12 @@ local function rect_detectCollision(x1,y1,w1,h1, x2,y2,w2,h2, goalX, goalY)
     local ti1,ti2,nx1,ny1 = rect_getSegmentIntersectionIndices(x,y,w,h, 0,0,dx,dy, -math.huge, math.huge)
 
     -- item tunnels into other
-    if ti1 and ti1 < 1 and (0 < ti1 or 0 == ti1 and ti2 > 0) then
+    if ti1
+    and ti1 < 1
+    and (abs(ti1 - ti2) >= DELTA) -- special case for rect going through another rect's corner
+    and (0 < ti1 + DELTA
+      or 0 == ti1 and ti2 > 0)
+    then
       ti, nx, ny = ti1, nx1, ny1
       overlaps   = false
     end
@@ -174,8 +179,9 @@ local function rect_detectCollision(x1,y1,w1,h1, x2,y2,w2,h2, goalX, goalY)
       tx, ty = x1 + px, y1 + py
     else
       -- intersecting and moving - move in the opposite direction
-      local ti1
+      local ti1, _
       ti1,_,nx,ny = rect_getSegmentIntersectionIndices(x,y,w,h, 0,0,dx,dy, -math.huge, 1)
+      if not ti1 then return end
       tx, ty = x1 + dx * ti1, y1 + dy * ti1
     end
   else -- tunnel
@@ -261,12 +267,10 @@ end
 ------------------------------------------
 
 local touch = function(world, col, x,y,w,h, goalX, goalY, filter)
-  local touch = col.touch
-  return touch.x, touch.y, {}, 0
+  return col.touch.x, col.touch.y, {}, 0
 end
 
 local cross = function(world, col, x,y,w,h, goalX, goalY, filter)
-  local touch = col.touch
   local cols, len = world:project(col.item, x,y,w,h, goalX, goalY, filter)
   return goalX, goalY, cols, len
 end
@@ -275,20 +279,18 @@ local slide = function(world, col, x,y,w,h, goalX, goalY, filter)
   goalX = goalX or x
   goalY = goalY or y
 
-  local touch, move  = col.touch, col.move
-  local sx, sy       = touch.x, touch.y
+  local tch, move  = col.touch, col.move
   if move.x ~= 0 or move.y ~= 0 then
-    if col.normal.x == 0 then
-      sx = goalX
+    if col.normal.x ~= 0 then
+      goalX = tch.x
     else
-      sy = goalY
+      goalY = tch.y
     end
   end
 
-  col.slide = {x = sx, y = sy}
+  col.slide = {x = goalX, y = goalY}
 
-  x,y          = touch.x, touch.y
-  goalX, goalY = sx, sy
+  x,y = tch.x, tch.y
   local cols, len  = world:project(col.item, x,y,w,h, goalX, goalY, filter)
   return goalX, goalY, cols, len
 end
@@ -297,45 +299,23 @@ local bounce = function(world, col, x,y,w,h, goalX, goalY, filter)
   goalX = goalX or x
   goalY = goalY or y
 
-  local touch, move = col.touch, col.move
-  local tx, ty = touch.x, touch.y
+  local tch, move = col.touch, col.move
+  local tx, ty = tch.x, tch.y
 
-  local bx, by, bnx, bny = tx, ty, 0,0
+  local bx, by = tx, ty
 
   if move.x ~= 0 or move.y ~= 0 then
-    bnx, bny = goalX - tx, goalY - ty
+    local bnx, bny = goalX - tx, goalY - ty
     if col.normal.x == 0 then bny = -bny else bnx = -bnx end
     bx, by = tx + bnx, ty + bny
   end
 
   col.bounce   = {x = bx,  y = by}
-  x,y          = touch.x, touch.y
+  x,y          = tch.x, tch.y
   goalX, goalY = bx, by
 
   local cols, len    = world:project(col.item, x,y,w,h, goalX, goalY, filter)
   return goalX, goalY, cols, len
-end
-
-local onewayplatform = function(world, col, x,y,w,h, goalX, goalY, filter)
-  if col.normal.y < 0 and not col.overlaps then
-      col.didTouch = true
-      goalX, goalY, cols, len = slide(world, col, x,y,w,h, goalX, goalY, filter)
-      return goalX, goalY, cols, len
-  else
-      goalX, goalY, cols, len = cross(world, col, x,y,w,h, goalX, goalY, filter)
-      return goalX, goalY, cols, len
-  end
-end
-
-local onewayplatformTouch = function(world, col, x,y,w,h, goalX, goalY, filter)
-  if col.normal.y < 0 and not col.overlaps then
-      col.didTouch = true
-      goalX, goalY, cols, len = touch(world, col, x,y,w,h, goalX, goalY, filter)
-      return goalX, goalY, cols, len
-  else
-      goalX, goalY, cols, len = cross(world, col, x,y,w,h, goalX, goalY, filter)
-      return goalX, goalY, cols, len
-  end
 end
 
 ------------------------------------------
@@ -562,6 +542,8 @@ end
 
 function World:queryRect(x,y,w,h, filter)
 
+  assertIsRect(x,y,w,h)
+
   local cl,ct,cw,ch = grid_toCellRect(self.cellSize, x,y,w,h)
   local dictItemsInCellRect = getDictItemsInCellRect(self, cl,ct,cw,ch)
 
@@ -663,20 +645,45 @@ function World:remove(item)
 end
 
 function World:update(item, x2,y2,w2,h2)
-  local x,y,w,h = self:getRect(item)
-  w2,h2 = w2 or w, h2 or h
+  local x1,y1,w1,h1 = self:getRect(item)
+  w2,h2 = w2 or w1, h2 or h1
   assertIsRect(x2,y2,w2,h2)
-  if x ~= x2 or y ~= y2 or w ~= w2 or h ~= h2 then
+
+  if x1 ~= x2 or y1 ~= y2 or w1 ~= w2 or h1 ~= h2 then
+
     local cellSize = self.cellSize
-    local cl1,ct1,cw1,ch1 = grid_toCellRect(cellSize, x,y,w,h)
+    local cl1,ct1,cw1,ch1 = grid_toCellRect(cellSize, x1,y1,w1,h1)
     local cl2,ct2,cw2,ch2 = grid_toCellRect(cellSize, x2,y2,w2,h2)
-    if cl1==cl2 and ct1==ct2 and cw1==cw2 and ch1==ch2 then
-      local rect = self.rects[item]
-      rect.x, rect.y, rect.w, rect.h = x2,y2,w2,h2
-    else
-      self:remove(item)
-      self:add(item, x2,y2,w2,h2)
+
+    if cl1 ~= cl2 or ct1 ~= ct2 or cw1 ~= cw2 or ch1 ~= ch2 then
+
+      local cr1, cb1 = cl1+cw1-1, ct1+ch1-1
+      local cr2, cb2 = cl2+cw2-1, ct2+ch2-1
+      local cyOut
+
+      for cy = ct1, cb1 do
+        cyOut = cy < ct2 or cy > cb2
+        for cx = cl1, cr1 do
+          if cyOut or cx < cl2 or cx > cr2 then
+            removeItemFromCell(self, item, cx, cy)
+          end
+        end
+      end
+
+      for cy = ct2, cb2 do
+        cyOut = cy < ct1 or cy > cb1
+        for cx = cl2, cr2 do
+          if cyOut or cx < cl1 or cx > cr1 then
+            addItemToCell(self, item, cx, cy)
+          end
+        end
+      end
+
     end
+
+    local rect = self.rects[item]
+    rect.x, rect.y, rect.w, rect.h = x2,y2,w2,h2
+
   end
 end
 
@@ -692,9 +699,9 @@ function World:check(item, goalX, goalY, filter)
   filter = filter or defaultFilter
 
   local visited = {[item] = true}
-  local visitedFilter = function(item, other)
+  local visitedFilter = function(itm, other)
     if visited[other] then return false end
-    return filter(item, other)
+    return filter(itm, other)
   end
 
   local cols, len = {}, 0
@@ -742,8 +749,6 @@ bump.newWorld = function(cellSize)
   world:addResponse('cross', cross)
   world:addResponse('slide', slide)
   world:addResponse('bounce', bounce)
-  world:addResponse('onewayplatform', onewayplatform)
-  world:addResponse('onewayplatformTouch', onewayplatformTouch)
 
   return world
 end

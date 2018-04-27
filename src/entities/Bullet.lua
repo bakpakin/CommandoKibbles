@@ -3,10 +3,10 @@ local Explosion =  require "src.entities.Explosion"
 
 local Bullet = class("Bullet")
 
-Bullet.speed = 480
 Bullet.sprite = assets.img_bullet
 
 function Bullet:init(x, y, direction)
+    self.speed = 400 + math.random() * 40
     self.pos = {x = x, y = y}
     self.vel = {x = self.speed * math.cos(direction), y = self.speed * math.sin(direction)}
     self.offset = {x = 4, y = 4}

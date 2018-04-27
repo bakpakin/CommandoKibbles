@@ -1,10 +1,9 @@
-local function FadeSystem()
-	return tiny.processingSystem(
-		tiny.requireAll("fadeTime", "alpha"),
-		function(e, dt)
-			e.alpha = math.min(1, math.max(0, e.alpha - dt / e.fadeTime))
-		end
-	)
+local FadeSystem = tiny.processingSystem(class "FadeSystem")
+
+FadeSystem.filter = tiny.requireAll("fadeTime", "alpha")
+
+function FadeSystem:process(e, dt)
+	e.alpha = math.min(1, math.max(0, e.alpha - dt / e.fadeTime))
 end
 
 return FadeSystem

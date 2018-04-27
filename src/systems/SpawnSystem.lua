@@ -1,36 +1,37 @@
 local TimerEvent = require "src.entities.TimerEvent"
 
-local function SpawnSystem(levelState)
+local SpawnSystem = tiny.system(class "SpawnSystem")
 
-	local time = 0
+SpawnSystem.filter = tiny.requireAll("isSpawner")
 
-	return tiny.system(
-		function(dt)
-			time = time + dt
-		end,
-		tiny.requireAll("isSpawner"),
-		nil,
-		function(e)
-			levelState.spawners[e] = true
-			levelState.spawnerCount = levelState.spawnerCount + 1
-		end,
-		function(e)
-			levelState.spawners[e] = false
-			levelState.spawnerCount = levelState.spawnerCount - 1
-		end,
-		function(dt)
-			if levelState.isSpawning and levelState.enemiesSpawned < levelState.totalEnemiesToKill and time >= levelState.spawnInterval then
-				local choice = math.ceil(math.random() * levelState.spawnerCount)
-				for spnr in pairs(levelState.spawners) do
-					choice = choice - 1
-					if choice == 0 then
-						spnr:spawn()
-					end
-				end
-				time = 0
+function SpawnSystem:init(levelState)
+	self.levelState = levelState
+	self.time = 0
+end
+
+function SpawnSystem:update(dt)
+	self.time = self.time + dt
+	local levelState = self.levelState
+	if levelState.isSpawning and levelState.enemiesSpawned < levelState.totalEnemiesToKill and self.time >= levelState.spawnInterval then
+		local choice = math.ceil(math.random() * levelState.spawnerCount)
+		for spnr in pairs(levelState.spawners) do
+			choice = choice - 1
+			if choice == 0 then
+				spnr:spawn()
 			end
 		end
-	)
+		self.time = 0
+	end
+end
+
+function SpawnSystem:onAdd(e)
+	self.levelState.spawners[e] = true
+	self.levelState.spawnerCount = self.levelState.spawnerCount + 1
+end
+
+function SpawnSystem:onRemove(e)
+	self.levelState.spawners[e] = false
+	self.levelState.spawnerCount = self.levelState.spawnerCount - 1
 end
 
 return SpawnSystem

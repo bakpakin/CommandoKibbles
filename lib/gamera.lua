@@ -169,6 +169,7 @@ function gamera:getVisibleCorners()
   return x1,y1,x2,y2,x3,y3,x4,y4
 end
 
+-- modified here
 function gamera:apply()
     love.graphics.setScissor(self:getWindow())
 
@@ -190,6 +191,7 @@ function gamera:draw(f)
     f(self:getVisible())
     self:remove()
 end
+-- to here
 
 function gamera:toWorld(x,y)
   local scale, sin, cos = self.scale, self.sin, self.cos

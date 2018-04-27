@@ -1,12 +1,12 @@
-local assets = require "src.assets"
+local HudSystem = tiny.processingSystem(class "HudSystem")
+HudSystem.isDrawSystem = true
 
-local function HudSystem(levelState, layerFlag)
-	return tiny.processingSystem(
-		tiny.requireAll("drawHud", layerFlag),
-		function(e, dt)
-			e:drawHud(dt)
-		end
-	)
+function HudSystem:init(layerFlag)
+	self.filter = tiny.requireAll("drawHud", layerFlag)
+end
+
+function HudSystem:process(e, dt)
+	e:drawHud(dt)
 end
 
 return HudSystem

@@ -29,7 +29,7 @@ function Level:nextWave()
 end
 
 function Level:load()
-	local tileMap = sti.new(self.mappath)
+	local tileMap = sti(self.mappath)
     local bumpWorld = bump.newWorld(tileMap.tilewidth * 2)
     local w, h = tileMap.tilewidth * tileMap.width, tileMap.tileheight * tileMap.height
     local camera = gamera.new(0, 0, w, h)
@@ -51,7 +51,7 @@ function Level:load()
 
     camera:setScale(2)
     local world = tiny.world(
-        require ("src.systems.DrawBackgroundSystem")(r, g, b),
+        require ("src.systems.DrawBackgroundSystem")(r/255, g/255, b/255),
         require ("src.systems.UpdateSystem")(),
         require ("src.systems.PlayerControlSystem")(),
         self.aiSystem,
@@ -63,8 +63,8 @@ function Level:load()
         require ("src.systems.SpriteSystem")(camera, "bg"),
         require ("src.systems.SpriteSystem")(camera, "fg"),
         require ("src.systems.LifetimeSystem")(),
-        require ("src.systems.HudSystem")(self, "hudBg"),
-        require ("src.systems.HudSystem")(self, "hudFg"),
+        require ("src.systems.HudSystem")("hudBg"),
+        require ("src.systems.HudSystem")("hudFg"),
         require ("src.systems.WaveSystem")(self),
         require ("src.systems.SpawnSystem")(self),
         require ("src.entities.MainHud")(self),

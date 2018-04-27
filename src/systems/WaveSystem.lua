@@ -1,29 +1,25 @@
 local TimerEvent = require "src.entities.TimerEvent"
 
-local function WaveSystem(levelState)
+local WaveSystem = tiny.system(class "WaveSystem")
 
-	local time = 0
+WaveSystem.filter = tiny.requireAll("isEnemy")
 
-	return tiny.system(
-		function(dt)
-			time = time + dt
-		end,
-		tiny.requireOne("isEnemy"),
-		function(e, dt)
+function WaveSystem:init(levelState)
+	self.levelState = levelState
+end
 
-		end,
-		function(e) -- on add
-			levelState.enemiesSpawned = levelState.enemiesSpawned + 1
-		end,
-		function(e) -- on remove
-			levelState.enemiesKilled = levelState.enemiesKilled + 1
-			if levelState.enemiesKilled >= levelState.totalEnemiesToKill then
-				world:add(TimerEvent(1, function()
-				 levelState:nextWave()
-				end))
-			end
-		end
-	)
+function WaveSystem:onAdd(e)
+	self.levelState.enemiesSpawned = self.levelState.enemiesSpawned + 1
+end
+
+function WaveSystem:onRemove(e)
+	local levelState = self.levelState
+	levelState.enemiesKilled = levelState.enemiesKilled + 1
+	if levelState.enemiesKilled >= levelState.totalEnemiesToKill then
+		world:add(TimerEvent(1, function()
+			levelState:nextWave()
+		end))
+	end
 end
 
 return WaveSystem

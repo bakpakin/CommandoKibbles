@@ -318,6 +318,28 @@ local bounce = function(world, col, x,y,w,h, goalX, goalY, filter)
   return goalX, goalY, cols, len
 end
 
+local onewayplatform = function(world, col, x,y,w,h, goalX, goalY, filter)
+  if col.normal.y < 0 and not col.overlaps then
+    col.didTouch = true
+    goalX, goalY, cols, len = slide(world, col, x,y,w,h, goalX, goalY, filter)
+    return goalX, goalY, cols, len
+  else
+    goalX, goalY, cols, len = cross(world, col, x,y,w,h, goalX, goalY, filter)
+    return goalX, goalY, cols, len
+  end
+end
+
+local onewayplatformTouch = function(world, col, x,y,w,h, goalX, goalY, filter)
+  if col.normal.y < 0 and not col.overlaps then
+    col.didTouch = true
+    goalX, goalY, cols, len = touch(world, col, x,y,w,h, goalX, goalY, filter)
+    return goalX, goalY, cols, len
+  else
+    goalX, goalY, cols, len = cross(world, col, x,y,w,h, goalX, goalY, filter)
+    return goalX, goalY, cols, len
+  end
+end
+
 ------------------------------------------
 -- World
 ------------------------------------------
@@ -749,6 +771,8 @@ bump.newWorld = function(cellSize)
   world:addResponse('cross', cross)
   world:addResponse('slide', slide)
   world:addResponse('bounce', bounce)
+  world:addResponse('onewayplatform', onewayplatform)
+  world:addResponse('onewayplatformTouch', onewayplatformTouch)
 
   return world
 end

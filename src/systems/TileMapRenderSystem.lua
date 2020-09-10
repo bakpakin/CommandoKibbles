@@ -25,7 +25,7 @@ function TileMapRenderSystem:update(dt)
         tm:resize(lgw, lgh)
     end
     tm:update(dt)
-    tm:draw(-tx, -ty + 16, s)
+    tm:draw(-tx + 16, -ty + 16, s)
 end
 
 return TileMapRenderSystem
